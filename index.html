@@ -2,370 +2,119 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Excel‑Like Sales Dashboard | Filters, Sorting, Follow-ups</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome Icons -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Dashboard · Live from Google Sheets</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f1f5f9;
-            color: #0f2c3b;
-            padding: 24px 20px;
-        }
-        .dashboard {
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-        /* header & top bar */
-        .header {
-            background: white;
-            border-radius: 28px;
-            padding: 18px 24px;
-            margin-bottom: 24px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            gap: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-            border: 1px solid #e2edf2;
-        }
-        h1 {
-            font-size: 1.6rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #1e6f5c, #289672);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .controls {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .control-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #f8fafc;
-            padding: 4px 16px;
-            border-radius: 40px;
-            border: 1px solid #dce7ed;
-        }
-        select, button, .file-label {
-            padding: 8px 18px;
-            border-radius: 32px;
-            border: none;
-            font-family: inherit;
-            font-weight: 500;
-            font-size: 0.85rem;
-            cursor: pointer;
-            background: white;
-            border: 1px solid #cbdde4;
-        }
-        button, .file-label {
-            background: #1e6f5c;
-            color: white;
-            border: none;
-        }
-        button:hover, .file-label:hover {
-            background: #0e5a49;
-            transform: scale(0.97);
-        }
-        input[type="file"] { display: none; }
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 16px;
-            margin-bottom: 28px;
-        }
-        .stat-card {
-            background: white;
-            border-radius: 24px;
-            padding: 16px;
-            text-align: center;
-            border: 1px solid #e2edf2;
-            transition: 0.1s;
-        }
-        .stat-card h3 { font-size: 0.75rem; color: #5f8b9c; margin-bottom: 6px; font-weight: 500; }
-        .stat-number { font-size: 1.9rem; font-weight: 800; color: #1e6f5c; }
-        /* two columns */
-        .main-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-        }
-        .table-section {
-            flex: 2.5;
-            background: white;
-            border-radius: 28px;
-            border: 1px solid #e2edf2;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        .followup-section {
-            flex: 1.2;
-            background: white;
-            border-radius: 28px;
-            border: 1px solid #e2edf2;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .section-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            padding: 18px 20px 8px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            flex-wrap: wrap;
-            border-bottom: 2px solid #eef3f7;
-        }
-        /* EXCEL-LIKE FILTER ROW */
-        .filter-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            padding: 12px 20px;
-            background: #fefefe;
-            border-bottom: 1px solid #ecf3f8;
-            align-items: center;
-        }
-        .filter-input {
-            flex: 1;
-            min-width: 160px;
-            padding: 8px 12px;
-            border-radius: 32px;
-            border: 1px solid #cbdde4;
-            font-size: 0.8rem;
-            background: white;
-        }
-        .filter-select {
-            padding: 8px 12px;
-            border-radius: 32px;
-            border: 1px solid #cbdde4;
-            background: white;
-            font-size: 0.8rem;
-            min-width: 140px;
-        }
-        .btn-icon {
-            background: #eef2f5;
-            color: #2c5a6e;
-            border: none;
-            padding: 6px 14px;
-            font-size: 0.75rem;
-        }
-        .table-wrapper {
-            overflow-x: auto;
-            padding: 0 0 16px 0;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.8rem;
-            min-width: 800px;
-        }
-        th {
-            background: #f5fafd;
-            padding: 12px 12px;
-            text-align: left;
-            font-weight: 700;
-            color: #165a6b;
-            border-bottom: 1px solid #d4e3ea;
-            cursor: pointer;
-            user-select: none;
-            white-space: nowrap;
-        }
-        th i {
-            margin-left: 6px;
-            font-size: 0.7rem;
-            opacity: 0.6;
-        }
-        th:hover {
-            background: #eaf3f8;
-        }
-        td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #ecf3f8;
-            color: #1f4a5c;
-        }
-        tr:hover td {
-            background: #fafefe;
-        }
-        .client-name {
-            font-weight: 600;
-            color: #0c4e6e;
-        }
-        .empty-msg {
-            text-align: center;
-            padding: 48px;
-            color: #8aaebf;
-        }
-        /* follow-ups */
-        .follow-list {
-            max-height: 420px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 8px;
-        }
-        .follow-item {
-            background: #fefbf5;
-            border-left: 4px solid #f5a65b;
-            border-radius: 18px;
-            padding: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-        }
-        .add-follow {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 8px;
-        }
-        .add-follow input, .add-follow textarea {
-            border: 1px solid #d4e2e9;
-            border-radius: 20px;
-            padding: 10px 14px;
-            font-family: inherit;
-            font-size: 0.8rem;
-        }
-        .badge {
-            background: #eef2f5;
-            border-radius: 40px;
-            padding: 2px 10px;
-            font-size: 0.7rem;
-        }
-        .clear-filters {
-            background: transparent;
-            border: 1px solid #cbdde4;
-            color: #4a6f80;
-        }
-        @media (max-width: 800px) {
-            body { padding: 16px; }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f0f4f8; padding: 20px; }
+        .dashboard { max-width: 1600px; margin: 0 auto; }
+        .header { background: white; border-radius: 24px; padding: 20px 24px; margin-bottom: 24px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; }
+        h1 { font-size: 1.5rem; font-weight: 700; color: #1e6f5c; }
+        .live-badge { background: #dcfce7; color: #166534; padding: 6px 14px; border-radius: 40px; font-size: 0.75rem; }
+        select, button { padding: 8px 16px; border-radius: 40px; border: 1px solid #cbd5e1; font-family: inherit; font-size: 0.85rem; cursor: pointer; background: white; }
+        button { background: #1e6f5c; color: white; border: none; }
+        button:hover { background: #0e5a49; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: white; border-radius: 20px; padding: 16px; text-align: center; border: 1px solid #e2e8f0; }
+        .stat-card h3 { font-size: 0.75rem; color: #5f8b9c; margin-bottom: 6px; }
+        .stat-number { font-size: 1.8rem; font-weight: 800; color: #1e6f5c; }
+        .main-grid { display: flex; flex-wrap: wrap; gap: 24px; }
+        .table-section { flex: 2.5; background: white; border-radius: 24px; border: 1px solid #e2e8f0; overflow-x: auto; }
+        .followup-section { flex: 1.2; background: white; border-radius: 24px; border: 1px solid #e2e8f0; padding: 20px; }
+        .section-title { font-size: 1.1rem; font-weight: 600; padding: 16px 20px; border-bottom: 2px solid #eef3f7; }
+        .filter-bar { padding: 12px 20px; background: #fefefe; border-bottom: 1px solid #ecf3f8; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+        .filter-input, .filter-select { padding: 8px 12px; border-radius: 32px; border: 1px solid #cbdde4; font-size: 0.8rem; }
+        .filter-input { flex: 1; min-width: 180px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 750px; }
+        th { background: #f8fafc; padding: 12px 10px; text-align: left; font-weight: 600; cursor: pointer; }
+        th i { margin-left: 6px; opacity: 0.5; }
+        td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
+        tr:hover { background: #fafefe; }
+        .client-name { font-weight: 600; color: #0c4e6e; }
+        .follow-list { max-height: 400px; overflow-y: auto; margin: 12px 0; }
+        .follow-item { background: #fef9f0; border-left: 3px solid #f5a65b; padding: 10px; margin-bottom: 10px; border-radius: 12px; }
+        .add-follow { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+        .add-follow input, .add-follow textarea { padding: 10px; border-radius: 16px; border: 1px solid #cbd5e1; font-family: inherit; }
+        .empty-msg { text-align: center; padding: 40px; color: #8aaebf; }
+        .loading { text-align: center; padding: 40px; color: #1e6f5c; }
+        .auto-refresh { font-size: 0.7rem; color: #5f8b9c; text-align: center; margin-top: 12px; }
     </style>
 </head>
 <body>
 <div class="dashboard">
     <div class="header">
-        <h1><i class="fas fa-chart-line"></i> Sales Intelligence · Excel‑Style Dashboard</h1>
-        <div class="controls">
-            <div class="control-group">
-                <label><i class="fas fa-user-tie"></i> Rep:</label>
-                <select id="salesmanSelect"></select>
-            </div>
-            <div class="control-group">
-                <label class="file-label"><i class="fas fa-upload"></i> Upload CSV
-                    <input type="file" id="csvUpload" accept=".csv">
-                </label>
-                <button id="resetFollowsBtn"><i class="fas fa-trash-alt"></i> Reset Follow-ups</button>
-            </div>
+        <h1><i class="fas fa-chart-line"></i> Live Sales Dashboard</h1>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <span class="live-badge" id="liveStatus"><i class="fas fa-sync-alt"></i> Loading...</span>
+            <select id="salesmanSelect"><option value="">-- Select Salesperson --</option></select>
+            <button id="refreshBtn"><i class="fas fa-refresh"></i> Refresh</button>
         </div>
     </div>
 
-    <div class="stats" id="statsPanel">
+    <div class="stats">
         <div class="stat-card"><h3><i class="fas fa-users"></i> Unique Clients</h3><div class="stat-number" id="totalClients">0</div></div>
         <div class="stat-card"><h3><i class="fas fa-table"></i> Total Records</h3><div class="stat-number" id="totalRecords">0</div></div>
         <div class="stat-card"><h3><i class="fas fa-chart-simple"></i> Sales 2025</h3><div class="stat-number" id="total2025">0</div></div>
-        <div class="stat-card"><h3><i class="fas fa-calendar-alt"></i> Forecast 2026</h3><div class="stat-number" id="total2026">0</div></div>
-        <div class="stat-card"><h3><i class="fas fa-phone-alt"></i> Active Follow-ups</h3><div class="stat-number" id="followupCount">0</div></div>
+        <div class="stat-card"><h3><i class="fas fa-calendar"></i> Forecast 2026</h3><div class="stat-number" id="total2026">0</div></div>
+        <div class="stat-card"><h3><i class="fas fa-phone"></i> Follow-ups</h3><div class="stat-number" id="followupCount">0</div></div>
     </div>
 
     <div class="main-grid">
-        <!-- LEFT: TABLE with Excel-like filtering & sorting -->
         <div class="table-section">
-            <div class="section-title">
-                <span><i class="fas fa-filter"></i> Customer & Sales Data</span>
-                <span class="badge" id="rowCountBadge">0 rows</span>
+            <div class="section-title"><span><i class="fas fa-filter"></i> Customer Sales Data</span><span class="live-badge" id="rowCount">0 rows</span></div>
+            <div class="filter-bar">
+                <select id="clientFilter" class="filter-select"><option value="">All Clients</option></select>
+                <input type="text" id="globalSearch" class="filter-input" placeholder="🔍 Search by item, client, year...">
+                <button id="clearFilters" style="background:#eef2f5; color:#2c5a6e;">Clear</button>
             </div>
-            <!-- FILTER BAR (client filter + global text) -->
-            <div class="filter-row">
-                <select id="clientFilterSelect" class="filter-select">
-                    <option value="">📋 All Clients</option>
-                </select>
-                <input type="text" id="globalSearchInput" class="filter-input" placeholder="🔍 Search item, year, or any field...">
-                <button id="clearAllFiltersBtn" class="btn-icon clear-filters"><i class="fas fa-times-circle"></i> Clear filters</button>
-                <span style="font-size:0.7rem; color:#6f9eb0;"><i class="fas fa-arrow-up-wide-short"></i> Click column headers to sort</span>
-            </div>
-            <div class="table-wrapper">
+            <div style="overflow-x: auto;">
                 <table id="dataTable">
-                    <thead id="tableHeader">
-                        <tr>
-                            <th data-field="item">Item <i class="fas fa-sort"></i></th>
-                            <th data-field="customer">Customer Name <i class="fas fa-sort"></i></th>
-                            <th data-field="y2023">2023 <i class="fas fa-sort"></i></th>
-                            <th data-field="y2024">2024 <i class="fas fa-sort"></i></th>
-                            <th data-field="y2025">2025 <i class="fas fa-sort"></i></th>
-                            <th data-field="pcChange">% Change <i class="fas fa-sort"></i></th>
-                            <th data-field="y2026">2026 <i class="fas fa-sort"></i></th>
-                            <th data-field="followPreview">Latest Follow-up</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <tr><td colspan="8" class="empty-msg"><i class="fas fa-cloud-upload-alt"></i> Upload CSV file (export from Google Sheets)</td></tr>
-                    </tbody>
+                    <thead><tr>
+                        <th data-field="item">Item <i class="fas fa-sort"></i></th>
+                        <th data-field="customer">Customer Name <i class="fas fa-sort"></i></th>
+                        <th data-field="y2023">2023 <i class="fas fa-sort"></i></th>
+                        <th data-field="y2024">2024 <i class="fas fa-sort"></i></th>
+                        <th data-field="y2025">2025 <i class="fas fa-sort"></i></th>
+                        <th data-field="pcChange">% Change <i class="fas fa-sort"></i></th>
+                        <th data-field="y2026">2026 <i class="fas fa-sort"></i></th>
+                        <th>Latest Follow-up</th>
+                    </tr></thead>
+                    <tbody id="tableBody"><tr><td colspan="8" class="loading"><i class="fas fa-spinner fa-pulse"></i> Loading data from Google Sheets...</td></tr></tbody>
                 </table>
             </div>
+            <div class="auto-refresh"><i class="fas fa-clock"></i> Auto-sync every 60 seconds | Staff edit the Google Sheet directly</div>
         </div>
 
-        <!-- RIGHT: Follow-up manager -->
         <div class="followup-section">
-            <div class="section-title">
-                <span><i class="fas fa-clipboard-list"></i> Follow-up Board</span>
-                <span class="badge" id="followBadge">0</span>
-            </div>
-            <div>
-                <div style="font-weight:500; margin-bottom:6px;">👤 <span id="selectedSalesmanLabel">—</span></div>
-                <div id="followupListContainer" class="follow-list">
-                    <div class="empty-msg" style="padding:20px">No follow-ups yet. Add one below.</div>
-                </div>
-            </div>
+            <div class="section-title"><span><i class="fas fa-clipboard-list"></i> Follow-up Manager</span></div>
+            <div><strong>👤 <span id="selectedSalesman">—</span></strong></div>
+            <div id="followupList" class="follow-list"><div class="empty-msg">Select a salesperson</div></div>
             <div class="add-follow">
-                <input type="text" id="followClient" placeholder="Client name" list="clientSuggestList" autocomplete="off">
-                <datalist id="clientSuggestList"></datalist>
-                <textarea id="followNote" rows="2" placeholder="Follow-up notes / action items..."></textarea>
+                <input type="text" id="followClient" placeholder="Client name" list="clientSuggest">
+                <datalist id="clientSuggest"></datalist>
+                <textarea id="followNote" rows="2" placeholder="Follow-up notes..."></textarea>
                 <input type="date" id="followDate">
-                <button id="addFollowBtn"><i class="fas fa-plus-circle"></i> Add Follow-up</button>
+                <button id="addFollowBtn"><i class="fas fa-plus"></i> Add Follow-up</button>
             </div>
-            <p style="font-size:0.7rem; color:#8da3af;"><i class="fas fa-database"></i> Follow-ups stored locally per salesperson</p>
+            <div class="auto-refresh">💡 Follow-ups saved in your browser</div>
         </div>
     </div>
 </div>
 
 <script>
-    // ---------- GLOBAL STATE ----------
-    let masterData = [];         // raw rows
-    let currentSalesman = "";
-    let uniqueSalesmen = [];
-    let followupsDB = {};
-
-    // Filter & sort state
-    let currentClientFilter = "";      // selected client name
-    let currentGlobalSearch = "";      // text search
-    let currentSort = { field: null, direction: "asc" };  // field: item, customer, y2023, etc.
-
-    // Helper: load/save follow-ups
-    function loadFollowups() {
-        const stored = localStorage.getItem("sales_followups_v4");
-        if (stored) { try { followupsDB = JSON.parse(stored); } catch(e) { followupsDB = {}; } }
-        else followupsDB = {};
-    }
-    function saveFollowups() { localStorage.setItem("sales_followups_v4", JSON.stringify(followupsDB)); }
-
-    // CSV parser (matches your Google Sheets columns)
-    function parseCSVtoData(csvText) {
+    // 🔴 YOUR GOOGLE SHEETS CSV LINK - REPLACE THIS WITH YOUR ACTUAL LINK
+    const GOOGLE_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaCyadnOz0CXG8UO2vtZq9piNj-J6jtJnTx3UiECAlzX_sJS9wcsFXuse3-_xq9DC0q8BZHQQ_VdbR/pub?output=csv";
+    
+    let allSalesData = [], uniqueSalesmen = [], currentSalesman = "", followupsDB = {};
+    let currentClientFilter = "", currentGlobalSearch = "";
+    let currentSort = { field: "customer", direction: "asc" };
+    
+    function loadFollowups() { const stored = localStorage.getItem("sales_followups_live"); if (stored) { try { followupsDB = JSON.parse(stored); } catch(e) { followupsDB = {}; } } else { followupsDB = {}; } }
+    function saveFollowups() { localStorage.setItem("sales_followups_live", JSON.stringify(followupsDB)); }
+    
+    function parseCSV(csvText) {
         const lines = csvText.split(/\r?\n/);
         if (lines.length < 2) return [];
         const data = [];
@@ -393,295 +142,74 @@
         }
         return data;
     }
-
-    // Get latest follow-up preview for a given client & current salesman
-    function getFollowPreview(client) {
-        if (!currentSalesman) return "—";
-        const follows = followupsDB[currentSalesman] || [];
-        const match = follows.filter(f => f.client === client).sort((a,b)=> b.timestamp - a.timestamp)[0];
-        return match ? `📌 ${match.note.substring(0, 45)}${match.note.length>45?'…':''}` : "—";
-    }
-
-    // Apply all filters (client dropdown + global search) + sorting, then render
-    function applyFiltersAndSort() {
-        if (!currentSalesman || masterData.length === 0) {
-            renderTableBody([]);
-            updateStatsAndCounts([]);
-            return;
-        }
-        let filtered = masterData.filter(row => row.salesman === currentSalesman);
-        // Client filter
-        if (currentClientFilter && currentClientFilter !== "") {
-            filtered = filtered.filter(row => row.customer === currentClientFilter);
-        }
-        // Global text search (case-insensitive) on item, customer, years, pcChange
-        if (currentGlobalSearch.trim() !== "") {
-            const search = currentGlobalSearch.trim().toLowerCase();
-            filtered = filtered.filter(row => {
-                return (row.item && row.item.toLowerCase().includes(search)) ||
-                       (row.customer && row.customer.toLowerCase().includes(search)) ||
-                       (row.y2023 && row.y2023.toString().includes(search)) ||
-                       (row.y2024 && row.y2024.toString().includes(search)) ||
-                       (row.y2025 && row.y2025.toString().includes(search)) ||
-                       (row.y2026 && row.y2026.toString().includes(search)) ||
-                       (row.pcChange && row.pcChange.toString().toLowerCase().includes(search));
-            });
-        }
-        // Sorting
-        if (currentSort.field) {
-            filtered.sort((a,b) => {
-                let valA, valB;
-                if (currentSort.field === "item") { valA = a.item || ""; valB = b.item || ""; }
-                else if (currentSort.field === "customer") { valA = a.customer || ""; valB = b.customer || ""; }
-                else if (currentSort.field === "y2023") { valA = a.y2023 ?? -Infinity; valB = b.y2023 ?? -Infinity; }
-                else if (currentSort.field === "y2024") { valA = a.y2024 ?? -Infinity; valB = b.y2024 ?? -Infinity; }
-                else if (currentSort.field === "y2025") { valA = a.y2025 ?? -Infinity; valB = b.y2025 ?? -Infinity; }
-                else if (currentSort.field === "y2026") { valA = a.y2026 ?? -Infinity; valB = b.y2026 ?? -Infinity; }
-                else if (currentSort.field === "pcChange") { valA = a.pcChange || ""; valB = b.pcChange || ""; }
-                else return 0;
-                if (valA === valB) return 0;
-                const isNum = (currentSort.field === "y2023" || currentSort.field === "y2024" || currentSort.field === "y2025" || currentSort.field === "y2026");
-                let cmp = 0;
-                if (isNum) cmp = (valA < valB ? -1 : 1);
-                else cmp = String(valA).localeCompare(String(valB));
-                return currentSort.direction === "asc" ? cmp : -cmp;
-            });
-        }
-        renderTableBody(filtered);
-        updateStatsAndCounts(filtered);
-        updateClientFilterDropdown();
-    }
-
-    function renderTableBody(filteredRows) {
-        const tbody = document.getElementById("tableBody");
-        const rowCountSpan = document.getElementById("rowCountBadge");
-        if (!currentSalesman || filteredRows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="empty-msg"><i class="fas fa-info-circle"></i> No matching records</td></tr>';
-            rowCountSpan.innerText = "0 rows";
-            return;
-        }
-        rowCountSpan.innerText = `${filteredRows.length} rows`;
-        tbody.innerHTML = filteredRows.map(row => {
-            const followPreview = getFollowPreview(row.customer);
-            return `<tr>
-                        <td>${escapeHtml(row.item || "—")}</td>
-                        <td class="client-name">${escapeHtml(row.customer || "—")}</td>
-                        <td>${row.y2023 !== null && !isNaN(row.y2023) ? row.y2023 : "—"}</td>
-                        <td>${row.y2024 !== null && !isNaN(row.y2024) ? row.y2024 : "—"}</td>
-                        <td>${row.y2025 !== null && !isNaN(row.y2025) ? row.y2025 : "—"}</td>
-                        <td>${row.pcChange || "—"}</td>
-                        <td>${row.y2026 !== null && !isNaN(row.y2026) ? row.y2026 : "—"}</td>
-                        <td style="font-size:0.75rem;">${escapeHtml(followPreview)}</td>
-                    </tr>`;
-        }).join('');
-    }
-
-    function updateStatsAndCounts(filteredRows) {
-        if (!currentSalesman || masterData.length === 0) {
-            document.getElementById("totalClients").innerText = "0";
-            document.getElementById("totalRecords").innerText = "0";
-            document.getElementById("total2025").innerText = "0";
-            document.getElementById("total2026").innerText = "0";
-            document.getElementById("followupCount").innerText = "0";
-            return;
-        }
-        const baseRows = masterData.filter(r => r.salesman === currentSalesman);
-        const uniqueClientsSet = new Set(baseRows.map(r => r.customer).filter(c => c));
-        document.getElementById("totalClients").innerText = uniqueClientsSet.size;
-        document.getElementById("totalRecords").innerText = baseRows.length;
-        let sum2025 = 0, sum2026 = 0;
-        baseRows.forEach(r => { if (r.y2025 && !isNaN(r.y2025)) sum2025 += r.y2025; if (r.y2026 && !isNaN(r.y2026)) sum2026 += r.y2026; });
-        document.getElementById("total2025").innerText = sum2025.toFixed(0);
-        document.getElementById("total2026").innerText = sum2026.toFixed(0);
-        const followCount = (followupsDB[currentSalesman] || []).length;
-        document.getElementById("followupCount").innerText = followCount;
-        document.getElementById("followBadge").innerText = followCount;
-    }
-
-    // Update client filter dropdown based on current salesman data
-    function updateClientFilterDropdown() {
-        const select = document.getElementById("clientFilterSelect");
-        if (!currentSalesman || masterData.length === 0) {
-            select.innerHTML = '<option value="">📋 All Clients</option>';
-            return;
-        }
-        const clients = [...new Set(masterData.filter(r => r.salesman === currentSalesman).map(r => r.customer).filter(c => c))].sort();
-        let options = '<option value="">📋 All Clients</option>';
-        clients.forEach(c => { options += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`; });
-        select.innerHTML = options;
-        if (currentClientFilter && clients.includes(currentClientFilter)) select.value = currentClientFilter;
-        else select.value = "";
-    }
-
-    // Update client suggestions datalist for follow-ups
-    function updateClientSuggestions() {
-        const datalist = document.getElementById("clientSuggestList");
-        if (!currentSalesman || masterData.length === 0) { datalist.innerHTML = ""; return; }
-        const clients = [...new Set(masterData.filter(r => r.salesman === currentSalesman).map(r => r.customer).filter(c => c))];
-        datalist.innerHTML = clients.map(c => `<option value="${escapeHtml(c)}">`).join('');
-    }
-
-    // Load CSV file
-    function loadCSV(file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const csv = e.target.result;
-            const parsed = parseCSVtoData(csv);
-            if (parsed.length === 0) { alert("No valid rows. Check CSV columns: Item, Customer Name, Salesman, 2023,2024,2025,%,2026"); return; }
-            masterData = parsed;
-            const salesSet = new Set();
-            masterData.forEach(r => { if (r.salesman) salesSet.add(r.salesman); });
-            uniqueSalesmen = Array.from(salesSet).sort();
+    
+    async function fetchFromGoogleSheets() {
+        document.getElementById("tableBody").innerHTML = '<tr><td colspan="8" class="loading"><i class="fas fa-spinner fa-pulse"></i> Fetching live data from Google Sheets...</td></tr>';
+        try {
+            const response = await fetch(GOOGLE_SHEETS_CSV_URL);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const csvText = await response.text();
+            allSalesData = parseCSV(csvText);
+            if (allSalesData.length === 0) throw new Error("No valid data found");
+            const salesmanSet = new Set();
+            allSalesData.forEach(r => { if (r.salesman) salesmanSet.add(r.salesman); });
+            uniqueSalesmen = Array.from(salesmanSet).sort();
             const select = document.getElementById("salesmanSelect");
             select.innerHTML = '<option value="">-- Select Salesperson --</option>' + uniqueSalesmen.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
-            if (uniqueSalesmen.length) {
-                currentSalesman = uniqueSalesmen[0];
-                select.value = currentSalesman;
-                resetFiltersAndSort();
-                applyFiltersAndSort();
-                renderFollowupsUI();
-                updateClientSuggestions();
-            } else {
-                alert("No salesman column found.");
-            }
-        };
-        reader.readAsText(file);
-    }
-
-    // Reset all filters (client, global search, sorting)
-    function resetFiltersAndSort() {
-        currentClientFilter = "";
-        currentGlobalSearch = "";
-        currentSort = { field: null, direction: "asc" };
-        document.getElementById("clientFilterSelect").value = "";
-        document.getElementById("globalSearchInput").value = "";
-        // reset sort icons
-        document.querySelectorAll("#tableHeader th i").forEach(icon => { icon.className = "fas fa-sort"; });
-    }
-
-    // ----- FOLLOW-UP MANAGEMENT -----
-    function renderFollowupsUI() {
-        const container = document.getElementById("followupListContainer");
-        const labelSpan = document.getElementById("selectedSalesmanLabel");
-        if (!currentSalesman) {
-            labelSpan.innerText = "—";
-            container.innerHTML = '<div class="empty-msg">Select a sales rep</div>';
-            return;
-        }
-        labelSpan.innerText = currentSalesman;
-        const follows = followupsDB[currentSalesman] || [];
-        if (follows.length === 0) {
-            container.innerHTML = '<div class="empty-msg"><i class="far fa-comment-dots"></i> No follow-ups yet</div>';
-        } else {
-            container.innerHTML = follows.map((f, idx) => `
-                <div class="follow-item">
-                    <strong><i class="fas fa-user-check"></i> ${escapeHtml(f.client)}</strong>
-                    <div style="margin:6px 0 4px; font-size:0.8rem;">📌 ${escapeHtml(f.note)}</div>
-                    <div style="font-size:0.7rem; color:#6f8f9c;"><i class="far fa-calendar-alt"></i> ${f.date || "No date"} · added ${new Date(f.timestamp).toLocaleDateString()}</div>
-                    <button style="background:none; border:none; color:#c25b2e; font-size:0.7rem; cursor:pointer; margin-top:6px;" data-follow-idx="${idx}"><i class="fas fa-trash"></i> Remove</button>
-                </div>
-            `).join('');
-            document.querySelectorAll('[data-follow-idx]').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const idx = parseInt(btn.getAttribute('data-follow-idx'));
-                    if (!isNaN(idx) && followupsDB[currentSalesman]) {
-                        followupsDB[currentSalesman].splice(idx, 1);
-                        saveFollowups();
-                        renderFollowupsUI();
-                        applyFiltersAndSort();  // refresh table preview column
-                    }
-                });
-            });
-        }
-        updateStatsAndCounts([]);
-    }
-
-    function addFollowup() {
-        if (!currentSalesman) { alert("Select a salesperson first"); return; }
-        const client = document.getElementById("followClient").value.trim();
-        const note = document.getElementById("followNote").value.trim();
-        const date = document.getElementById("followDate").value || new Date().toISOString().split('T')[0];
-        if (!client) { alert("Client name required"); return; }
-        if (!note) { alert("Follow-up notes required"); return; }
-        if (!followupsDB[currentSalesman]) followupsDB[currentSalesman] = [];
-        followupsDB[currentSalesman].push({ client, note, date, timestamp: Date.now() });
-        saveFollowups();
-        renderFollowupsUI();
-        applyFiltersAndSort();   // refresh table preview
-        document.getElementById("followClient").value = "";
-        document.getElementById("followNote").value = "";
-        document.getElementById("followDate").value = "";
-    }
-
-    // ----- SORT HANDLERS -----
-    function handleSort(field) {
-        if (currentSort.field === field) {
-            currentSort.direction = currentSort.direction === "asc" ? "desc" : "asc";
-        } else {
-            currentSort.field = field;
-            currentSort.direction = "asc";
-        }
-        // update icons
-        document.querySelectorAll("#tableHeader th i").forEach(icon => { icon.className = "fas fa-sort"; });
-        const activeTh = document.querySelector(`#tableHeader th[data-field="${field}"] i`);
-        if (activeTh) activeTh.className = currentSort.direction === "asc" ? "fas fa-sort-up" : "fas fa-sort-down";
-        applyFiltersAndSort();
-    }
-
-    // ----- EVENT LISTENERS -----
-    document.getElementById("salesmanSelect").addEventListener("change", (e) => {
-        currentSalesman = e.target.value;
-        resetFiltersAndSort();
-        applyFiltersAndSort();
-        renderFollowupsUI();
-        updateClientSuggestions();
-    });
-    document.getElementById("clientFilterSelect").addEventListener("change", (e) => {
-        currentClientFilter = e.target.value;
-        applyFiltersAndSort();
-    });
-    document.getElementById("globalSearchInput").addEventListener("input", (e) => {
-        currentGlobalSearch = e.target.value;
-        applyFiltersAndSort();
-    });
-    document.getElementById("clearAllFiltersBtn").addEventListener("click", () => {
-        resetFiltersAndSort();
-        applyFiltersAndSort();
-    });
-    document.getElementById("csvUpload").addEventListener("change", (e) => {
-        if (e.target.files && e.target.files[0]) loadCSV(e.target.files[0]);
-    });
-    document.getElementById("addFollowBtn").addEventListener("click", addFollowup);
-    document.getElementById("resetFollowsBtn").addEventListener("click", () => {
-        if (currentSalesman && confirm(`Delete all follow-ups for ${currentSalesman}?`)) {
-            followupsDB[currentSalesman] = [];
-            saveFollowups();
+            if (uniqueSalesmen.length > 0 && !currentSalesman) { currentSalesman = uniqueSalesmen[0]; select.value = currentSalesman; }
+            applyFiltersAndRender();
             renderFollowupsUI();
-            applyFiltersAndSort();
-        } else if (!currentSalesman) alert("Select a salesperson first");
-    });
-
-    // Attach sorting event listeners to headers
-    function bindSortEvents() {
-        document.querySelectorAll("#tableHeader th").forEach(th => {
-            const field = th.getAttribute("data-field");
-            if (field && field !== "followPreview") {
-                th.removeEventListener("click", () => {});
-                th.addEventListener("click", () => handleSort(field));
-            }
-        });
+            updateClientSuggestions();
+            document.getElementById("liveStatus").innerHTML = '<i class="fas fa-check-circle"></i> Live · ' + new Date().toLocaleTimeString();
+            return true;
+        } catch (err) {
+            document.getElementById("tableBody").innerHTML = `<tr><td colspan="8" class="empty-msg"><i class="fas fa-exclamation-triangle"></i> Error: ${err.message}<br><br>Make sure your Google Sheet is published: File → Share → Publish to web → CSV</td></tr>`;
+            return false;
+        }
     }
-
-    // Observe header re-render after any filter change (no full DOM replacement, just table body). But bind after first load.
-    function init() {
-        loadFollowups();
-        bindSortEvents();
-        // monitor for any dynamic changes (header remains same)
-        setInterval(() => bindSortEvents(), 500);
+    
+    function getFollowPreview(client) { if (!currentSalesman) return "—"; const follows = followupsDB[currentSalesman] || []; const match = follows.filter(f => f.client === client).sort((a,b)=> b.timestamp - a.timestamp)[0]; return match ? `📌 ${match.note.substring(0, 40)}` : "—"; }
+    
+    function applyFiltersAndRender() {
+        if (!currentSalesman || allSalesData.length === 0) { renderTable([]); updateStats([]); return; }
+        let filtered = allSalesData.filter(row => row.salesman === currentSalesman);
+        if (currentClientFilter) filtered = filtered.filter(row => row.customer === currentClientFilter);
+        if (currentGlobalSearch.trim()) { const search = currentGlobalSearch.toLowerCase(); filtered = filtered.filter(row => (row.item && row.item.toLowerCase().includes(search)) || (row.customer && row.customer.toLowerCase().includes(search)) || (row.y2023 && row.y2023.toString().includes(search)) || (row.y2024 && row.y2024.toString().includes(search)) || (row.y2025 && row.y2025.toString().includes(search)) || (row.y2026 && row.y2026.toString().includes(search))); }
+        if (currentSort.field) { filtered.sort((a,b) => { let valA = a[currentSort.field] ?? ""; let valB = b[currentSort.field] ?? ""; if (currentSort.field === "y2023" || currentSort.field === "y2024" || currentSort.field === "y2025" || currentSort.field === "y2026") { valA = valA === null ? -Infinity : valA; valB = valB === null ? -Infinity : valB; } if (valA === valB) return 0; let cmp = valA < valB ? -1 : 1; return currentSort.direction === "asc" ? cmp : -cmp; }); }
+        renderTable(filtered);
+        updateStats(filtered);
+        updateClientFilterDropdown();
     }
-    init();
-    // helper
-    function escapeHtml(str) { if(!str) return ''; return String(str).replace(/[&<>]/g, m=> m==='&'?'&amp;': m==='<'?'&lt;':'&gt;'); }
+    
+    function renderTable(filtered) { const tbody = document.getElementById("tableBody"); document.getElementById("rowCount").innerHTML = filtered.length + " rows"; if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">No matching records</td></tr>'; return; }
+        tbody.innerHTML = filtered.map(row => `<tr><td>${escapeHtml(row.item || "—")}</td><td class="client-name">${escapeHtml(row.customer || "—")}</td><td>${row.y2023 !== null ? row.y2023 : "—"}</td><td>${row.y2024 !== null ? row.y2024 : "—"}</td><td>${row.y2025 !== null ? row.y2025 : "—"}</td><td>${row.pcChange || "—"}</td><td>${row.y2026 !== null ? row.y2026 : "—"}</td><td style="font-size:0.75rem;">${escapeHtml(getFollowPreview(row.customer))}</td></tr>`).join('');
+    }
+    
+    function updateStats(filtered) { if (!currentSalesman || allSalesData.length === 0) { document.getElementById("totalClients").innerText = "0"; document.getElementById("totalRecords").innerText = "0"; document.getElementById("total2025").innerText = "0"; document.getElementById("total2026").innerText = "0"; return; } const allForRep = allSalesData.filter(r => r.salesman === currentSalesman); const uniqueClients = new Set(allForRep.map(r => r.customer)); document.getElementById("totalClients").innerText = uniqueClients.size; document.getElementById("totalRecords").innerText = allForRep.length; let sum2025 = 0, sum2026 = 0; allForRep.forEach(r => { if (r.y2025) sum2025 += r.y2025; if (r.y2026) sum2026 += r.y2026; }); document.getElementById("total2025").innerText = sum2025.toFixed(0); document.getElementById("total2026").innerText = sum2026.toFixed(0); document.getElementById("followupCount").innerText = (followupsDB[currentSalesman] || []).length; }
+    
+    function updateClientFilterDropdown() { const select = document.getElementById("clientFilter"); if (!currentSalesman || allSalesData.length === 0) { select.innerHTML = '<option value="">All Clients</option>'; return; } const clients = [...new Set(allSalesData.filter(r => r.salesman === currentSalesman).map(r => r.customer))].sort(); select.innerHTML = '<option value="">All Clients</option>' + clients.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join(''); if (currentClientFilter) select.value = currentClientFilter; }
+    
+    function updateClientSuggestions() { const datalist = document.getElementById("clientSuggest"); if (!currentSalesman || allSalesData.length === 0) { datalist.innerHTML = ""; return; } const clients = [...new Set(allSalesData.filter(r => r.salesman === currentSalesman).map(r => r.customer))]; datalist.innerHTML = clients.map(c => `<option value="${escapeHtml(c)}">`).join(''); }
+    
+    function renderFollowupsUI() { const container = document.getElementById("followupList"); const label = document.getElementById("selectedSalesman"); if (!currentSalesman) { label.innerText = "—"; container.innerHTML = '<div class="empty-msg">Select a salesperson</div>'; return; } label.innerText = currentSalesman; const follows = followupsDB[currentSalesman] || []; if (follows.length === 0) { container.innerHTML = '<div class="empty-msg">No follow-ups yet</div>'; } else { container.innerHTML = follows.map((f, idx) => `<div class="follow-item"><strong><i class="fas fa-user"></i> ${escapeHtml(f.client)}</strong><div style="margin:4px 0;">📝 ${escapeHtml(f.note)}</div><div style="font-size:0.7rem;">📅 ${f.date || "No date"} · ${new Date(f.timestamp).toLocaleDateString()}</div><button style="background:none; border:none; color:#c25b2e; cursor:pointer;" data-idx="${idx}"><i class="fas fa-trash"></i> Remove</button></div>`).join(''); document.querySelectorAll('[data-idx]').forEach(btn => { btn.addEventListener('click', (e) => { const idx = parseInt(btn.getAttribute('data-idx')); if (!isNaN(idx) && followupsDB[currentSalesman]) { followupsDB[currentSalesman].splice(idx, 1); saveFollowups(); renderFollowupsUI(); applyFiltersAndRender(); } }); }); } }
+    
+    function addFollowup() { if (!currentSalesman) { alert("Select a salesperson first"); return; } const client = document.getElementById("followClient").value.trim(); const note = document.getElementById("followNote").value.trim(); const date = document.getElementById("followDate").value || new Date().toISOString().split('T')[0]; if (!client || !note) { alert("Enter client name and notes"); return; } if (!followupsDB[currentSalesman]) followupsDB[currentSalesman] = []; followupsDB[currentSalesman].push({ client, note, date, timestamp: Date.now() }); saveFollowups(); renderFollowupsUI(); applyFiltersAndRender(); document.getElementById("followClient").value = ""; document.getElementById("followNote").value = ""; document.getElementById("followDate").value = ""; }
+    
+    function setupSorting() { document.querySelectorAll("#dataTable th[data-field]").forEach(th => { const field = th.getAttribute("data-field"); th.addEventListener("click", () => { if (currentSort.field === field) { currentSort.direction = currentSort.direction === "asc" ? "desc" : "asc"; } else { currentSort.field = field; currentSort.direction = "asc"; } applyFiltersAndRender(); document.querySelectorAll("#dataTable th i").forEach(icon => { icon.className = "fas fa-sort"; }); const icon = th.querySelector("i"); if (icon) icon.className = currentSort.direction === "asc" ? "fas fa-sort-up" : "fas fa-sort-down"; }); }); }
+    
+    function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>]/g, m => m==='&'?'&amp;': m==='<'?'&lt;':'&gt;'); }
+    
+    document.getElementById("salesmanSelect").addEventListener("change", (e) => { currentSalesman = e.target.value; currentClientFilter = ""; currentGlobalSearch = ""; document.getElementById("clientFilter").value = ""; document.getElementById("globalSearch").value = ""; applyFiltersAndRender(); renderFollowupsUI(); updateClientSuggestions(); });
+    document.getElementById("clientFilter").addEventListener("change", (e) => { currentClientFilter = e.target.value; applyFiltersAndRender(); });
+    document.getElementById("globalSearch").addEventListener("input", (e) => { currentGlobalSearch = e.target.value; applyFiltersAndRender(); });
+    document.getElementById("clearFilters").addEventListener("click", () => { currentClientFilter = ""; currentGlobalSearch = ""; document.getElementById("clientFilter").value = ""; document.getElementById("globalSearch").value = ""; applyFiltersAndRender(); });
+    document.getElementById("refreshBtn").addEventListener("click", () => fetchFromGoogleSheets());
+    document.getElementById("addFollowBtn").addEventListener("click", addFollowup);
+    
+    loadFollowups();
+    fetchFromGoogleSheets();
+    setInterval(() => { if (document.visibilityState === "visible") fetchFromGoogleSheets(); }, 60000);
+    setTimeout(setupSorting, 500);
 </script>
 </body>
 </html>
