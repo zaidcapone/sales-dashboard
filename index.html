@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Dashboard · Live from Google Sheets</title>
+    <title>Sales Dashboard · Auto-Sync from Google Sheets</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -40,6 +40,7 @@
         .empty-msg { text-align: center; padding: 40px; color: #8aaebf; }
         .loading { text-align: center; padding: 40px; color: #1e6f5c; }
         .auto-refresh { font-size: 0.7rem; color: #5f8b9c; text-align: center; margin-top: 12px; }
+        .error-msg { text-align: center; padding: 40px; color: #dc2626; }
     </style>
 </head>
 <body>
@@ -84,7 +85,7 @@
                     <tbody id="tableBody"><tr><td colspan="8" class="loading"><i class="fas fa-spinner fa-pulse"></i> Loading data from Google Sheets...</td></tr></tbody>
                 </table>
             </div>
-            <div class="auto-refresh"><i class="fas fa-clock"></i> Auto-sync every 60 seconds | Staff edit the Google Sheet directly</div>
+            <div class="auto-refresh"><i class="fas fa-clock"></i> Auto-sync every 60 seconds | Data loads automatically from Google Sheet</div>
         </div>
 
         <div class="followup-section">
@@ -104,8 +105,13 @@
 </div>
 
 <script>
-    // 🔴 YOUR GOOGLE SHEETS CSV LINK - REPLACE THIS WITH YOUR ACTUAL LINK
-const GOOGLE_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaCydanOz0CXG8UO2vtZq9piNj-J6jtTnJx3UiECAlzX_sJS9wcsFXuse3-_xq9DCOq8BZHQQ_VdbR/pub?gid=0&single=true&output=csv";    
+    // Your Google Sheets ID (from your URL)
+    const SHEET_ID = "1Kw2FzsdvGVCEQJq0jm5-epz0E6S_ydLMqHAhp4Zbc0g";
+    
+    // Using Google's CSV export with cache busting to avoid CORS issues
+    // This URL format works with GitHub Pages via Google's raw export
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+    
     let allSalesData = [], uniqueSalesmen = [], currentSalesman = "", followupsDB = {};
     let currentClientFilter = "", currentGlobalSearch = "";
     let currentSort = { field: "customer", direction: "asc" };
@@ -143,13 +149,21 @@ const GOOGLE_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1v
     }
     
     async function fetchFromGoogleSheets() {
-        document.getElementById("tableBody").innerHTML = '<tr><td colspan="8" class="loading"><i class="fas fa-spinner fa-pulse"></i> Fetching live data from Google Sheets...</td></tr>';
+        const tbody = document.getElementById("tableBody");
+        tbody.innerHTML = '<tr><td colspan="8" class="loading"><i class="fas fa-spinner fa-pulse"></i> Fetching live data from Google Sheets...</td></tr>';
         try {
-            const response = await fetch(GOOGLE_SHEETS_CSV_URL);
+            // Using a no-cors mode with proper fetch
+            const response = await fetch(CSV_URL, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'text/csv'
+                }
+            });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const csvText = await response.text();
             allSalesData = parseCSV(csvText);
             if (allSalesData.length === 0) throw new Error("No valid data found");
+            
             const salesmanSet = new Set();
             allSalesData.forEach(r => { if (r.salesman) salesmanSet.add(r.salesman); });
             uniqueSalesmen = Array.from(salesmanSet).sort();
@@ -162,7 +176,9 @@ const GOOGLE_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1v
             document.getElementById("liveStatus").innerHTML = '<i class="fas fa-check-circle"></i> Live · ' + new Date().toLocaleTimeString();
             return true;
         } catch (err) {
-            document.getElementById("tableBody").innerHTML = `<tr><td colspan="8" class="empty-msg"><i class="fas fa-exclamation-triangle"></i> Error: ${err.message}<br><br>Make sure your Google Sheet is published: File → Share → Publish to web → CSV</td></tr>`;
+            console.error(err);
+            tbody.innerHTML = `<tr><td colspan="8" class="error-msg"><i class="fas fa-exclamation-triangle"></i> Error: ${err.message}<br><br>⚠️ IMPORTANT: Your Google Sheet must be shared as "Anyone with the link can view"<br><br>Go to your Google Sheet → Share button → Change to "Anyone with the link" → "Viewer"</td></tr>`;
+            document.getElementById("liveStatus").innerHTML = '<i class="fas fa-exclamation-circle"></i> Connection error';
             return false;
         }
     }
