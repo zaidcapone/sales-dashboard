@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales Dashboard · Auto-Sync from Google Sheets</title>
+    <title>Sales Dashboard · Live from Google Sheets</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -64,7 +64,7 @@
 
     <div class="main-grid">
         <div class="table-section">
-            <div class="section-title"><span><i class="fas fa-filter"></i> Customer Sales Data</span><span class="live-badge" id="rowCount">0 rows</span></div>
+            <div class="section-title"><span><i class="fas fa-filter"></i> Customer Sales Data (KG)</span><span class="live-badge" id="rowCount">0 rows</span></div>
             <div class="filter-bar">
                 <select id="clientFilter" class="filter-select"><option value="">All Clients</option></select>
                 <input type="text" id="globalSearch" class="filter-input" placeholder="🔍 Search by item, client, year...">
@@ -75,42 +75,39 @@
                     <thead><tr>
                         <th data-field="item">Item <i class="fas fa-sort"></i></th>
                         <th data-field="customer">Customer Name <i class="fas fa-sort"></i></th>
-                        <th data-field="y2023">2023 <i class="fas fa-sort"></i></th>
-                        <th data-field="y2024">2024 <i class="fas fa-sort"></i></th>
-                        <th data-field="y2025">2025 <i class="fas fa-sort"></i></th>
+                        <th data-field="y2023">2023 (KG) <i class="fas fa-sort"></i></th>
+                        <th data-field="y2024">2024 (KG) <i class="fas fa-sort"></i></th>
+                        <th data-field="y2025">2025 (KG) <i class="fas fa-sort"></i></th>
                         <th data-field="pcChange">% Change <i class="fas fa-sort"></i></th>
-                        <th data-field="y2026">2026 <i class="fas fa-sort"></i></th>
+                        <th data-field="y2026">2026 (KG) <i class="fas fa-sort"></i></th>
                         <th>Latest Follow-up</th>
                     </tr></thead>
-                    <tbody id="tableBody"><tr><td colspan="8" class="loading"><i class="fas fa-spinner fa-pulse"></i> Loading data from Google Sheets...</td></tr></tbody>
-                </table>
-            </div>
-            <div class="auto-refresh"><i class="fas fa-clock"></i> Auto-sync every 60 seconds | Data loads automatically from Google Sheet</div>
-        </div>
+                    <tbody id="tableBody"><tr><td colspan="8" class="loading"><i class="fas fa-spinner fa-pulse"></i> Loading data from Google Sheets...<\/td><\/tr><\/tbody>
+                <\/table>
+            <\/div>
+            <div class="auto-refresh"><i class="fas fa-clock"></i> Auto-sync every 60 seconds | Data loads automatically from Google Sheet<\/div>
+        <\/div>
 
         <div class="followup-section">
-            <div class="section-title"><span><i class="fas fa-clipboard-list"></i> Follow-up Manager</span></div>
-            <div><strong>👤 <span id="selectedSalesman">—</span></strong></div>
-            <div id="followupList" class="follow-list"><div class="empty-msg">Select a salesperson</div></div>
+            <div class="section-title"><span><i class="fas fa-clipboard-list"></i> Follow-up Manager<\/span><\/div>
+            <div><strong>👤 <span id="selectedSalesman">—<\/span><\/strong><\/div>
+            <div id="followupList" class="follow-list"><div class="empty-msg">Select a salesperson<\/div><\/div>
             <div class="add-follow">
                 <input type="text" id="followClient" placeholder="Client name" list="clientSuggest">
-                <datalist id="clientSuggest"></datalist>
-                <textarea id="followNote" rows="2" placeholder="Follow-up notes..."></textarea>
+                <datalist id="clientSuggest"><\/datalist>
+                <textarea id="followNote" rows="2" placeholder="Follow-up notes..."><\/textarea>
                 <input type="date" id="followDate">
-                <button id="addFollowBtn"><i class="fas fa-plus"></i> Add Follow-up</button>
-            </div>
-            <div class="auto-refresh">💡 Follow-ups saved in your browser</div>
-        </div>
-    </div>
-</div>
+                <button id="addFollowBtn"><i class="fas fa-plus"></i> Add Follow-up<\/button>
+            <\/div>
+            <div class="auto-refresh">💡 Follow-ups saved in your browser<\/div>
+        <\/div>
+    <\/div>
+<\/div>
 
 <script>
-    // Your Google Sheets ID (from your URL)
+    // Your Google Sheets ID
     const SHEET_ID = "1Kw2FzsdvGVCEQJq0jm5-epz0E6S_ydLMqHAhp4Zbc0g";
-    
-    // Using Google's CSV export with cache busting to avoid CORS issues
-    // This URL format works with GitHub Pages via Google's raw export
-    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+    const CSV_URL = `https:\/\/docs.google.com\/spreadsheets\/d\/${SHEET_ID}\/export?format=csv&gid=0`;
     
     let allSalesData = [], uniqueSalesmen = [], currentSalesman = "", followupsDB = {};
     let currentClientFilter = "", currentGlobalSearch = "";
@@ -118,6 +115,16 @@
     
     function loadFollowups() { const stored = localStorage.getItem("sales_followups_live"); if (stored) { try { followupsDB = JSON.parse(stored); } catch(e) { followupsDB = {}; } } else { followupsDB = {}; } }
     function saveFollowups() { localStorage.setItem("sales_followups_live", JSON.stringify(followupsDB)); }
+    
+    // Helper: Convert string with commas to number (e.g., "2,025" -> 2025)
+    function parseNumberWithCommas(value) {
+        if (value === null || value === undefined || value === "") return null;
+        if (typeof value === "number") return value;
+        // Remove commas and convert to number
+        const cleaned = String(value).replace(/,/g, '');
+        const num = parseFloat(cleaned);
+        return isNaN(num) ? null : num;
+    }
     
     function parseCSV(csvText) {
         const lines = csvText.split(/\r?\n/);
@@ -133,14 +140,18 @@
             }
             row.push(current.trim());
             if (row.length < 8) continue;
+            
             const item = row[0]?.replace(/["']/g, '') || '';
             const customer = row[1]?.replace(/["']/g, '') || '';
             const salesman = row[2]?.replace(/["']/g, '') || '';
-            const y2023 = parseFloat(row[3]) || null;
-            const y2024 = parseFloat(row[4]) || null;
-            const y2025 = parseFloat(row[5]) || null;
+            
+            // Handle numbers with commas properly
+            const y2023 = parseNumberWithCommas(row[3]);
+            const y2024 = parseNumberWithCommas(row[4]);
+            const y2025 = parseNumberWithCommas(row[5]);
             const pcChange = row[6]?.replace(/["']/g, '') || '';
-            const y2026 = parseFloat(row[7]) || null;
+            const y2026 = parseNumberWithCommas(row[7]);
+            
             if (salesman && salesman.trim() && customer && customer.trim()) {
                 data.push({ item, customer, salesman, y2023, y2024, y2025, pcChange, y2026 });
             }
@@ -150,14 +161,11 @@
     
     async function fetchFromGoogleSheets() {
         const tbody = document.getElementById("tableBody");
-        tbody.innerHTML = '<tr><td colspan="8" class="loading"><i class="fas fa-spinner fa-pulse"></i> Fetching live data from Google Sheets...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="loading"><i class="fas fa-spinner fa-pulse"></i> Fetching live data from Google Sheets...<\/td><\/tr>';
         try {
-            // Using a no-cors mode with proper fetch
             const response = await fetch(CSV_URL, {
                 method: 'GET',
-                headers: {
-                    'Accept': 'text/csv'
-                }
+                headers: { 'Accept': 'text/csv' }
             });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const csvText = await response.text();
@@ -177,13 +185,18 @@
             return true;
         } catch (err) {
             console.error(err);
-            tbody.innerHTML = `<tr><td colspan="8" class="error-msg"><i class="fas fa-exclamation-triangle"></i> Error: ${err.message}<br><br>⚠️ IMPORTANT: Your Google Sheet must be shared as "Anyone with the link can view"<br><br>Go to your Google Sheet → Share button → Change to "Anyone with the link" → "Viewer"</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="error-msg"><i class="fas fa-exclamation-triangle"></i> Error: ${err.message}<br><br>⚠️ Make sure your Google Sheet is shared as "Anyone with the link can view"<\/td><\/tr>`;
             document.getElementById("liveStatus").innerHTML = '<i class="fas fa-exclamation-circle"></i> Connection error';
             return false;
         }
     }
     
     function getFollowPreview(client) { if (!currentSalesman) return "—"; const follows = followupsDB[currentSalesman] || []; const match = follows.filter(f => f.client === client).sort((a,b)=> b.timestamp - a.timestamp)[0]; return match ? `📌 ${match.note.substring(0, 40)}` : "—"; }
+    
+    function formatNumber(num) {
+        if (num === null || num === undefined || isNaN(num)) return "—";
+        return num.toLocaleString(); // Adds commas for display (e.g., 2025 -> "2,025")
+    }
     
     function applyFiltersAndRender() {
         if (!currentSalesman || allSalesData.length === 0) { renderTable([]); updateStats([]); return; }
@@ -196,17 +209,26 @@
         updateClientFilterDropdown();
     }
     
-    function renderTable(filtered) { const tbody = document.getElementById("tableBody"); document.getElementById("rowCount").innerHTML = filtered.length + " rows"; if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">No matching records</td></tr>'; return; }
-        tbody.innerHTML = filtered.map(row => `<tr><td>${escapeHtml(row.item || "—")}</td><td class="client-name">${escapeHtml(row.customer || "—")}</td><td>${row.y2023 !== null ? row.y2023 : "—"}</td><td>${row.y2024 !== null ? row.y2024 : "—"}</td><td>${row.y2025 !== null ? row.y2025 : "—"}</td><td>${row.pcChange || "—"}</td><td>${row.y2026 !== null ? row.y2026 : "—"}</td><td style="font-size:0.75rem;">${escapeHtml(getFollowPreview(row.customer))}</td></tr>`).join('');
+    function renderTable(filtered) { const tbody = document.getElementById("tableBody"); document.getElementById("rowCount").innerHTML = filtered.length + " rows"; if (filtered.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">No matching records<\/td><\/tr>'; return; }
+        tbody.innerHTML = filtered.map(row => `<tr>
+            <td>${escapeHtml(row.item || "—")}<\/td>
+            <td class="client-name">${escapeHtml(row.customer || "—")}<\/td>
+            <td>${row.y2023 !== null ? formatNumber(row.y2023) : "—"}<\/td>
+            <td>${row.y2024 !== null ? formatNumber(row.y2024) : "—"}<\/td>
+            <td>${row.y2025 !== null ? formatNumber(row.y2025) : "—"}<\/td>
+            <td>${row.pcChange || "—"}<\/td>
+            <td>${row.y2026 !== null ? formatNumber(row.y2026) : "—"}<\/td>
+            <td style="font-size:0.75rem;">${escapeHtml(getFollowPreview(row.customer))}<\/td>
+        <\/tr>`).join('');
     }
     
-    function updateStats(filtered) { if (!currentSalesman || allSalesData.length === 0) { document.getElementById("totalClients").innerText = "0"; document.getElementById("totalRecords").innerText = "0"; document.getElementById("total2025").innerText = "0"; document.getElementById("total2026").innerText = "0"; return; } const allForRep = allSalesData.filter(r => r.salesman === currentSalesman); const uniqueClients = new Set(allForRep.map(r => r.customer)); document.getElementById("totalClients").innerText = uniqueClients.size; document.getElementById("totalRecords").innerText = allForRep.length; let sum2025 = 0, sum2026 = 0; allForRep.forEach(r => { if (r.y2025) sum2025 += r.y2025; if (r.y2026) sum2026 += r.y2026; }); document.getElementById("total2025").innerText = sum2025.toFixed(0); document.getElementById("total2026").innerText = sum2026.toFixed(0); document.getElementById("followupCount").innerText = (followupsDB[currentSalesman] || []).length; }
+    function updateStats(filtered) { if (!currentSalesman || allSalesData.length === 0) { document.getElementById("totalClients").innerText = "0"; document.getElementById("totalRecords").innerText = "0"; document.getElementById("total2025").innerText = "0"; document.getElementById("total2026").innerText = "0"; return; } const allForRep = allSalesData.filter(r => r.salesman === currentSalesman); const uniqueClients = new Set(allForRep.map(r => r.customer)); document.getElementById("totalClients").innerText = uniqueClients.size; document.getElementById("totalRecords").innerText = allForRep.length; let sum2025 = 0, sum2026 = 0; allForRep.forEach(r => { if (r.y2025) sum2025 += r.y2025; if (r.y2026) sum2026 += r.y2026; }); document.getElementById("total2025").innerText = sum2025.toLocaleString(); document.getElementById("total2026").innerText = sum2026.toLocaleString(); document.getElementById("followupCount").innerText = (followupsDB[currentSalesman] || []).length; }
     
     function updateClientFilterDropdown() { const select = document.getElementById("clientFilter"); if (!currentSalesman || allSalesData.length === 0) { select.innerHTML = '<option value="">All Clients</option>'; return; } const clients = [...new Set(allSalesData.filter(r => r.salesman === currentSalesman).map(r => r.customer))].sort(); select.innerHTML = '<option value="">All Clients</option>' + clients.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join(''); if (currentClientFilter) select.value = currentClientFilter; }
     
     function updateClientSuggestions() { const datalist = document.getElementById("clientSuggest"); if (!currentSalesman || allSalesData.length === 0) { datalist.innerHTML = ""; return; } const clients = [...new Set(allSalesData.filter(r => r.salesman === currentSalesman).map(r => r.customer))]; datalist.innerHTML = clients.map(c => `<option value="${escapeHtml(c)}">`).join(''); }
     
-    function renderFollowupsUI() { const container = document.getElementById("followupList"); const label = document.getElementById("selectedSalesman"); if (!currentSalesman) { label.innerText = "—"; container.innerHTML = '<div class="empty-msg">Select a salesperson</div>'; return; } label.innerText = currentSalesman; const follows = followupsDB[currentSalesman] || []; if (follows.length === 0) { container.innerHTML = '<div class="empty-msg">No follow-ups yet</div>'; } else { container.innerHTML = follows.map((f, idx) => `<div class="follow-item"><strong><i class="fas fa-user"></i> ${escapeHtml(f.client)}</strong><div style="margin:4px 0;">📝 ${escapeHtml(f.note)}</div><div style="font-size:0.7rem;">📅 ${f.date || "No date"} · ${new Date(f.timestamp).toLocaleDateString()}</div><button style="background:none; border:none; color:#c25b2e; cursor:pointer;" data-idx="${idx}"><i class="fas fa-trash"></i> Remove</button></div>`).join(''); document.querySelectorAll('[data-idx]').forEach(btn => { btn.addEventListener('click', (e) => { const idx = parseInt(btn.getAttribute('data-idx')); if (!isNaN(idx) && followupsDB[currentSalesman]) { followupsDB[currentSalesman].splice(idx, 1); saveFollowups(); renderFollowupsUI(); applyFiltersAndRender(); } }); }); } }
+    function renderFollowupsUI() { const container = document.getElementById("followupList"); const label = document.getElementById("selectedSalesman"); if (!currentSalesman) { label.innerText = "—"; container.innerHTML = '<div class="empty-msg">Select a salesperson<\/div>'; return; } label.innerText = currentSalesman; const follows = followupsDB[currentSalesman] || []; if (follows.length === 0) { container.innerHTML = '<div class="empty-msg">No follow-ups yet<\/div>'; } else { container.innerHTML = follows.map((f, idx) => `<div class="follow-item"><strong><i class="fas fa-user"></i> ${escapeHtml(f.client)}<\/strong><div style="margin:4px 0;">📝 ${escapeHtml(f.note)}<\/div><div style="font-size:0.7rem;">📅 ${f.date || "No date"} · ${new Date(f.timestamp).toLocaleDateString()}<\/div><button style="background:none; border:none; color:#c25b2e; cursor:pointer;" data-idx="${idx}"><i class="fas fa-trash"></i> Remove<\/button><\/div>`).join(''); document.querySelectorAll('[data-idx]').forEach(btn => { btn.addEventListener('click', (e) => { const idx = parseInt(btn.getAttribute('data-idx')); if (!isNaN(idx) && followupsDB[currentSalesman]) { followupsDB[currentSalesman].splice(idx, 1); saveFollowups(); renderFollowupsUI(); applyFiltersAndRender(); } }); }); } }
     
     function addFollowup() { if (!currentSalesman) { alert("Select a salesperson first"); return; } const client = document.getElementById("followClient").value.trim(); const note = document.getElementById("followNote").value.trim(); const date = document.getElementById("followDate").value || new Date().toISOString().split('T')[0]; if (!client || !note) { alert("Enter client name and notes"); return; } if (!followupsDB[currentSalesman]) followupsDB[currentSalesman] = []; followupsDB[currentSalesman].push({ client, note, date, timestamp: Date.now() }); saveFollowups(); renderFollowupsUI(); applyFiltersAndRender(); document.getElementById("followClient").value = ""; document.getElementById("followNote").value = ""; document.getElementById("followDate").value = ""; }
     
@@ -225,6 +247,6 @@
     fetchFromGoogleSheets();
     setInterval(() => { if (document.visibilityState === "visible") fetchFromGoogleSheets(); }, 60000);
     setTimeout(setupSorting, 500);
-</script>
-</body>
-</html>
+<\/script>
+<\/body>
+<\/html>
